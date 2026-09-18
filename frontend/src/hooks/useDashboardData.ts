@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 
 import type { DashboardData } from "../models/dashboard"
-import { fetchDashboardData } from "../api/dashboardApi"
+import { fetchDashboardData, fetchCurrentUser, type CurrentUserInfo } from "../api/dashboardApi"
 import { mockDashboardData } from "../dev/mockData"
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_DATA === "true"
@@ -11,6 +11,7 @@ export interface UseDashboardDataResult {
   isLoading: boolean
   error: string | null
   refetch: () => void
+  canManage: boolean
 }
 
 /**
@@ -26,8 +27,13 @@ export function useDashboardData(projectName: string): UseDashboardDataResult {
   const [isLoading, setIsLoading] = useState(!USE_MOCK)
   const [error, setError] = useState<string | null>(null)
   const [fetchTick, setFetchTick] = useState(0)
+  const [currentUser, setCurrentUser] = useState<CurrentUserInfo | null>(null)
 
   const refetch = useCallback(() => setFetchTick((t) => t + 1), [])
+
+  useEffect(() => {
+    fetchCurrentUser().then(setCurrentUser).catch(() => setCurrentUser(null))
+  }, [])
 
   useEffect(() => {
     if (USE_MOCK || !projectName) return
@@ -55,5 +61,5 @@ export function useDashboardData(projectName: string): UseDashboardDataResult {
     }
   }, [projectName, fetchTick])
 
-  return { data, isLoading, error, refetch }
+  return { data, isLoading, error, refetch, canManage: !!(currentUser?.data?.isAdmin || currentUser?.data?.isManager) }
 }

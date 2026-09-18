@@ -42,7 +42,7 @@ class PersonItem(BaseSettingsModel):
     username: str = SettingsField(
         "",
         title="AYON Username",
-        description="The user's AYON login name (e.g. john.smith).",
+        description="The user's AYON login name (e.g. .smith).",
     )
     role: str = SettingsField("", title="Role")
     enabled: bool = SettingsField(True, title="Enabled")
@@ -50,6 +50,8 @@ class PersonItem(BaseSettingsModel):
 
 class ProjectDashboardSettings(BaseSettingsModel):
     enabled: bool = SettingsField(True, title="Enabled")
+    refs_enabled: bool = SettingsField(False, title="Show References")
+    refs_thumbnail_size: int = SettingsField(140, title="Thumbnail Size (px)")
     header: HeaderSettings = SettingsField(
         default_factory=HeaderSettings,
         title="Header",
@@ -85,29 +87,34 @@ class ProjectDashboardSettings(BaseSettingsModel):
     )
     summary: List[SummaryItem] = SettingsField(
         default_factory=lambda: [
-            {"name": "Resolution", "content": ""},
-            {"name": "Frame Rate", "content": ""},
+            {"name": "Resolution", "content": "1920 x 1080"},
+            {"name": "Frame Rate", "content": "24 fps"},
             {"name": "Start Date", "content": ""},
             {"name": "End Date", "content": ""},
+            {"name": "Colorspace", "content": "sRGB"},
         ],
         title="Project Summary",
     )
     key_personnel: List[PersonItem] = SettingsField(
         default_factory=lambda: [
-            {"username": "", "role": "VFX Supervisor", "enabled": True},
-            {"username": "", "role": "Producer", "enabled": True},
-            {"username": "", "role": "Production Coordinator", "enabled": True},
+            {"username": "", "role": "Director", "enabled": False},
+            {"username": "", "role": "Producer", "enabled": False},
+            {"username": "", "role": "Production Assistant", "enabled": False},
+            {"username": "", "role": "Comp Lead", "enabled": False},
+            {"username": "", "role": "Head of 2d", "enabled": False},
+            {"username": "", "role": "Head of Comp", "enabled": False},
+            {"username": "", "role": "Head of CG", "enabled": False},
         ],
         title="Key Personnel",
     )
     links: List[LinkItem] = SettingsField(
         default_factory=lambda: [
             {
-                "title": "Project Brief",
-                "url": "",
-                "icon": "description",
+                "title": "IT Support",
+                "url": "https://app.slack.com/client/T59JJJKL7/C01631FTQER",
+                "icon": "computer",
                 "open_external": True,
-                "enabled": False,
+                "enabled": True,
             },
             {
                 "title": "Miro Board",
@@ -117,16 +124,16 @@ class ProjectDashboardSettings(BaseSettingsModel):
                 "enabled": False,
             },
             {
-                "title": "Slack Channel",
-                "url": "",
+                "title": "AYON Support",
+                "url": "https://app.slack.com/client/T59JJJKL7/C0BDZTVTMK9",
                 "icon": "forum",
                 "open_external": True,
-                "enabled": False,
+                "enabled": True,
             },
             {
-                "title": "Asset Library",
-                "url": "",
-                "icon": "folder",
+                "title": "THE LINE General",
+                "url": "https://app.slack.com/client/T59JJJKL7/C59J0B5U6",
+                "icon": "chat",
                 "open_external": True,
                 "enabled": False,
             },

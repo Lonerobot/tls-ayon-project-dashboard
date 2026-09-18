@@ -7,9 +7,11 @@ import { getBannerUrl, uploadBanner, removeBanner } from "../api/dashboardApi"
 interface DashboardHeaderProps {
   header: HeaderSettings
   projectName: string
+  canManage: boolean
 }
 
 const HeaderWrapper = styled.header`
+  flex-shrink: 0;
   border-radius: var(--border-radius);
   overflow: hidden;
   background-color: var(--md-sys-color-surface-container-low);
@@ -26,13 +28,16 @@ const BannerArea = styled.div`
 const BannerImage = styled.img`
   display: block;
   width: 100%;
-  height: 200px;
+  height: 160px;
+  min-height: 160px;
+  max-height: 240px;
   object-fit: cover;
+  background-color: var(--md-sys-color-surface-container);
 `
 
 const BannerPlaceholder = styled.div`
   width: 100%;
-  height: 160px;
+  height: 80px;
   background-color: var(--md-sys-color-surface-container);
   display: flex;
   align-items: center;
@@ -74,24 +79,10 @@ const UploadBtn = styled.button`
 `
 
 const HeaderContent = styled.div`
-  padding: var(--padding-m);
+  padding: var(--padding-s) var(--padding-m);
 `
 
-const ProjectTitle = styled.h1`
-  font-size: var(--font-size-2xl, var(--font-size-xl));
-  font-weight: 700;
-  margin: 0;
-  color: var(--md-sys-color-primary);
-  line-height: 1.2;
-`
-
-const ProjectSubtitle = styled.p`
-  font-size: var(--font-size-m);
-  margin: 6px 0 0;
-  color: var(--md-sys-color-on-surface-variant);
-`
-
-const DashboardHeader = ({ header, projectName }: DashboardHeaderProps) => {
+const DashboardHeader = ({ header, projectName, canManage }: DashboardHeaderProps) => {
   const [hasBanner, setHasBanner] = useState(header.has_banner)
   const [bannerKey, setBannerKey] = useState(0)
   const [uploading, setUploading] = useState(false)
@@ -144,52 +135,45 @@ const DashboardHeader = ({ header, projectName }: DashboardHeaderProps) => {
           <BannerPlaceholder>No banner — hover to upload</BannerPlaceholder>
         )}
 
-        <ButtonRow className="banner-btns">
-          {hasBanner && (
+        {canManage && (
+          <ButtonRow className="banner-btns">
+            {hasBanner && (
+              <UploadBtn
+                disabled={uploading || removing}
+                title="Remove banner"
+                onClick={handleRemove}
+              >
+                {removing ? "Removing…" : "✕ Remove"}
+              </UploadBtn>
+            )}
             <UploadBtn
               disabled={uploading || removing}
-              title="Remove banner"
-              onClick={handleRemove}
+              title="Upload banner image (JPEG, PNG, WebP or GIF, max 5 MB)"
+              onClick={() => fileInputRef.current?.click()}
             >
-              {removing ? "Removing…" : "✕ Remove"}
+              {uploading ? "Uploading…" : "⬆ Upload banner"}
             </UploadBtn>
-          )}
-          <UploadBtn
-            disabled={uploading || removing}
-            title="Upload banner image (JPEG, PNG, WebP or GIF, max 5 MB)"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {uploading ? "Uploading…" : "⬆ Upload banner"}
-          </UploadBtn>
-        </ButtonRow>
+          </ButtonRow>
+        )}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          style={{ display: "none" }}
-          onChange={handleFileChange}
-        />
+        {canManage && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
+        )}
       </BannerArea>
 
       {uploadError && (
-        <div
-          style={{
-            padding: "4px 12px",
-            fontSize: "var(--font-size-s)",
-            color: "var(--md-sys-color-error)",
-          }}
-        >
-          {uploadError}
-        </div>
+        <HeaderContent>
+          <span style={{ fontSize: "var(--font-size-s)", color: "var(--md-sys-color-error)" }}>
+            {uploadError}
+          </span>
+        </HeaderContent>
       )}
-
-      <HeaderContent>
-        <ProjectTitle>{header.project_title || projectName}</ProjectTitle>
-        {header.show_subtitle && header.subtitle && (
-          <ProjectSubtitle>{header.subtitle}</ProjectSubtitle>
-        )}
-      </HeaderContent>
     </HeaderWrapper>
   )
 }

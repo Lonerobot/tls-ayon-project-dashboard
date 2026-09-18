@@ -6,6 +6,7 @@ import ContentBlocks from "../components/ProjectDescription"
 import ProjectSummaryInfo from "../components/ProjectSummaryInfo"
 import KeyPersonnel from "../components/KeyPersonnel"
 import LinkGrid from "../components/LinkGrid"
+import ProjectRefs from "../components/ProjectRefs"
 
 export interface DashboardPanelProps {
   projectName: string
@@ -24,6 +25,36 @@ const BodyRow = styled.div`
   display: flex;
   gap: var(--padding-m);
   align-items: flex-start;
+  flex-shrink: 0;
+`
+
+const MainColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--padding-m);
+  flex: 1;
+  min-width: 0;
+`
+
+const ProjectTitle = styled.h1`
+  font-size: clamp(1.8rem, 3vw + 0.5rem, 3rem);
+  font-weight: 700;
+  margin: 0;
+  color: var(--md-sys-color-primary);
+  line-height: 1.15;
+`
+
+const ProjectSubtitle = styled.p`
+  font-size: var(--font-size-l);
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+`
+
+const TitleBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
 `
 
 const StatusMessage = styled.p`
@@ -34,7 +65,7 @@ const StatusMessage = styled.p`
 `
 
 const DashboardPanel = ({ projectName }: DashboardPanelProps) => {
-  const { data, isLoading, error } = useDashboardData(projectName)
+  const { data, isLoading, error, canManage } = useDashboardData(projectName)
 
   if (isLoading) return <StatusMessage>Loading…</StatusMessage>
   if (error) return <StatusMessage>Unable to load dashboard.</StatusMessage>
@@ -47,22 +78,34 @@ const DashboardPanel = ({ projectName }: DashboardPanelProps) => {
     (item) => item.name.trim() || item.content.trim()
   )
   const hasLinks = data.links.some((l) => l.enabled)
-  const showBodyRow = hasBlocks || hasSummary
 
   return (
     <PanelWrapper>
-      <DashboardHeader header={data.header} projectName={projectName} />
+      <DashboardHeader header={data.header} projectName={projectName} canManage={canManage} />
 
-      {showBodyRow && (
-        <BodyRow>
-          {hasBlocks && (
-            <ContentBlocks blocks={data.content_blocks} />
-          )}
-          {hasSummary && <ProjectSummaryInfo summary={data.summary} />}
-        </BodyRow>
-      )}
+      <TitleBlock>
+        <ProjectTitle>{data.header.project_title || projectName}</ProjectTitle>
+        {data.header.show_subtitle && data.header.subtitle && (
+          <ProjectSubtitle>{data.header.subtitle}</ProjectSubtitle>
+        )}
+      </TitleBlock>
+
+      <BodyRow>
+        <MainColumn>
+          {hasBlocks && <ContentBlocks blocks={data.content_blocks} />}
+        </MainColumn>
+        {hasSummary && <ProjectSummaryInfo summary={data.summary} />}
+      </BodyRow>
 
       <KeyPersonnel personnel={data.key_personnel} />
+
+      {data.refs_enabled && (
+        <ProjectRefs
+          projectName={projectName}
+          thumbnailSize={data.refs_thumbnail_size ?? 140}
+          canManage={canManage}
+        />
+      )}
 
       {hasLinks && <LinkGrid links={data.links} />}
     </PanelWrapper>

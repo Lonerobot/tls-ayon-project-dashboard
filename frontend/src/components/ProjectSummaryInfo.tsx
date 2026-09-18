@@ -8,8 +8,8 @@ interface ProjectSummaryInfoProps {
 }
 
 const Callout = styled.aside`
-  flex: 1;
-  min-width: 180px;
+  flex: 0 0 200px;
+  width: 200px;
   background-color: var(--md-sys-color-surface-container-low);
   border-radius: var(--border-radius);
   padding: var(--padding-m);

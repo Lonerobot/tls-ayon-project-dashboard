@@ -2,6 +2,8 @@ import type { DashboardData } from "../models/dashboard"
 
 export const mockDashboardData: DashboardData = {
   enabled: true,
+  refs_enabled: true,
+  refs_thumbnail_size: 140,
   header: {
     project_title: "Project Halloween",
     show_subtitle: true,

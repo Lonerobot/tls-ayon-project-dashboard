@@ -35,6 +35,8 @@ export interface PersonItem {
 
 export interface DashboardData {
   enabled: boolean
+  refs_enabled: boolean
+  refs_thumbnail_size: number
   header: HeaderSettings
   content_blocks: ContentBlock[]
   summary: SummaryItem[]

@@ -133,7 +133,8 @@ Remote page tabs are appended **after** all built-in project tabs (Overview, Tas
 ### File upload endpoint
 ```python
 from fastapi import UploadFile, HTTPException
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import Response
+from ayon_server.files import Storages
 
 @router.post("/{project_name}/banner", status_code=204)
 async def upload_banner(
@@ -146,22 +147,31 @@ async def upload_banner(
     content = await file.read()
     if len(content) > MAX_SIZE:
         raise HTTPException(status_code=413, detail="File too large")
-    ...
+    storage = await Storages.project(project_name)
+    await storage.store_thumbnail(file_id, content)   # 32 hex-char id, e.g. uuid4().hex
     return Response(status_code=204)
 
 @router.get("/{project_name}/banner")
-async def get_banner(project_name: str, user: CurrentUser) -> FileResponse:
-    ...
-    return FileResponse(path=str(file_path), media_type="image/jpeg")
+async def get_banner(project_name: str, user: CurrentUser) -> Response:
+    storage = await Storages.project(project_name)
+    try:
+        content = await storage.get_thumbnail(file_id)
+    except FileNotFoundError:
+        raise NotFoundException(detail="Not found.") from None
+    return Response(content=content, media_type="image/jpeg")
 
 @router.delete("/{project_name}/banner", status_code=204)
 async def delete_banner(project_name: str, user: CurrentUser) -> Response:
-    ...
+    storage = await Storages.project(project_name)
+    await storage.delete_thumbnail(file_id)   # no-ops silently if missing
     return Response(status_code=204)
 ```
 
-### File storage location
+### File storage location — do NOT use raw local disk paths
+**Do not** invent an env var like `AYON_DATA_DIR` and write to a local filesystem path from
+addon code:
 ```python
+# ❌ WRONG — breaks on managed/cloud hosting
 import os
 from pathlib import Path
 
@@ -169,6 +179,35 @@ data_root = Path(os.environ.get("AYON_DATA_DIR", "/srv/ayon/data"))
 storage = data_root / "addons" / addon.name / addon.version / "my-files"
 storage.mkdir(parents=True, exist_ok=True)
 ```
+`AYON_DATA_DIR` is not a real AYON server config/env var — it's not defined anywhere in
+`ayon_server`. A path like this happens to work in local single-container Docker testing
+(one filesystem, one process serves every request), but on managed/cloud AYON hosting the
+server may run multiple replicas without a shared filesystem at that arbitrary path, and/or
+the container's local disk may be ephemeral. Writes from one request become invisible to a
+later request (a different replica, or after a restart), causing "works locally, broken in
+the cloud" bugs — uploaded files silently vanish, and deletes 404 because the file was never
+really there to begin with.
+
+**Do** use AYON's own project storage abstraction instead, which transparently supports
+either local disk or S3 depending on how the AYON server itself is configured
+(`ayonconfig.default_project_storage_type`), so it is guaranteed to be persistent/shared
+correctly regardless of hosting topology — the exact same mechanism AYON uses internally for
+comments, thumbnails, and file attachments:
+```python
+from ayon_server.files import Storages
+
+storage = await Storages.project(project_name)
+await storage.store_thumbnail(file_id, content_bytes)   # file_id: 32 hex chars, e.g. uuid4().hex
+content = await storage.get_thumbnail(file_id)           # raises FileNotFoundError if missing
+await storage.delete_thumbnail(file_id)                  # silently no-ops if missing
+```
+`ProjectStorage`'s `thumbnails` file group is a convenient generic small-blob store (bytes in,
+bytes out, works the same for local/S3) — handy for small addon-managed images like banners
+or reference thumbnails. If you need to track metadata alongside the blob (original filename,
+mime type, an ordered list of files), store a small JSON manifest the same way, under its own
+deterministic file id (e.g. `uuid5(NAMESPACE, f"manifest:{project_name}")` so it can be
+recomputed without a separate database).
+
 
 ### Exceptions
 ```python

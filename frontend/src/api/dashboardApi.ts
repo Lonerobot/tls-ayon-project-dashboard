@@ -12,6 +12,14 @@ export interface AyonUser {
   }
 }
 
+export interface CurrentUserInfo {
+  name: string
+  data?: {
+    isAdmin?: boolean
+    isManager?: boolean
+  }
+}
+
 const MOCK_USERS: Record<string, AyonUser> = {
   "jane.doe": { name: "jane.doe", attrib: { fullName: "Jane Doe" } },
   "john.smith": { name: "john.smith", attrib: { fullName: "John Smith" } },
@@ -114,4 +122,53 @@ export async function removeBanner(projectName: string): Promise<void> {
       `Banner removal failed (${response.status} ${response.statusText})`
     )
   }
+}
+
+export async function fetchCurrentUser(): Promise<CurrentUserInfo> {
+  // In mock mode assume full management rights so the dev experience is unchanged.
+  if (USE_MOCK) return { name: "dev", data: { isAdmin: true } }
+
+  const response = await fetch("/api/users/me", { credentials: "include" })
+  if (!response.ok) {
+    throw new Error(`Failed to fetch current user (${response.status})`)
+  }
+  const data = await response.json()
+  return data as CurrentUserInfo
+}
+
+export function getRefUrl(projectName: string, filename: string): string {
+  return `${BASE}/${encodeURIComponent(projectName)}/refs/${encodeURIComponent(filename)}`
+}
+
+export async function fetchRefs(projectName: string): Promise<string[]> {
+  if (USE_MOCK) return []
+  const res = await fetch(`${BASE}/${encodeURIComponent(projectName)}/refs`, {
+    credentials: "include",
+  })
+  if (!res.ok) throw new Error(`Failed to fetch refs (${res.status})`)
+  return res.json() as Promise<string[]>
+}
+
+export async function uploadRef(projectName: string, file: File): Promise<void> {
+  if (USE_MOCK) return
+  const body = new FormData()
+  body.append("file", file)
+  const res = await fetch(`${BASE}/${encodeURIComponent(projectName)}/refs`, {
+    method: "POST",
+    body,
+    credentials: "include",
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => res.statusText)
+    throw new Error(detail || `Upload failed (${res.status})`)
+  }
+}
+
+export async function deleteRef(projectName: string, filename: string): Promise<void> {
+  if (USE_MOCK) return
+  const res = await fetch(
+    `${BASE}/${encodeURIComponent(projectName)}/refs/${encodeURIComponent(filename)}`,
+    { method: "DELETE", credentials: "include" }
+  )
+  if (!res.ok) throw new Error(`Delete failed (${res.status})`)
 }
