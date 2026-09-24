@@ -5,7 +5,7 @@ name = "project-dashboard"
 title = "Project Dashboard"
 
 # Required: Valid semantic version (https://semver.org/)
-version = "0.1.23"
+version = "0.1.24"
 
 # No client code directory
 client_dir = None
