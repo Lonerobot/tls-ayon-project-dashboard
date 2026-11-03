@@ -139,9 +139,16 @@ class ProjectDashboardSettings(BaseSettingsModel):
     links: List[LinkItem] = SettingsField(
         default_factory=lambda: [
             {
-                "title": "IT Support",
-                "url": "https://app.slack.com/client/T59JJJKL7/C01631FTQER",
-                "icon": "computer",
+                "title": "THE LINE Studio",
+                "url": "https://thelinestudio.com",
+                "icon": "language",
+                "open_external": True,
+                "enabled": True,
+            },
+            {
+                "title": "Ynput / AYON",
+                "url": "https://ynput.io",
+                "icon": "language",
                 "open_external": True,
                 "enabled": True,
             },
@@ -149,20 +156,6 @@ class ProjectDashboardSettings(BaseSettingsModel):
                 "title": "Miro Board",
                 "url": "",
                 "icon": "dashboard",
-                "open_external": True,
-                "enabled": False,
-            },
-            {
-                "title": "AYON Support",
-                "url": "https://app.slack.com/client/T59JJJKL7/C0BDZTVTMK9",
-                "icon": "forum",
-                "open_external": True,
-                "enabled": True,
-            },
-            {
-                "title": "THE LINE General",
-                "url": "https://app.slack.com/client/T59JJJKL7/C59J0B5U6",
-                "icon": "chat",
                 "open_external": True,
                 "enabled": False,
             },
