@@ -1,6 +1,12 @@
 from typing import List
 
+from ayon_server.enum import EnumItem, EnumRegistry
 from ayon_server.settings import BaseSettingsModel, SettingsField
+
+
+async def users_enum() -> list[EnumItem]:
+    """Studio user list for the Key Personnel dropdown (no project scoping)."""
+    return await EnumRegistry.resolve("users")
 
 
 class LinkItem(BaseSettingsModel):
@@ -42,7 +48,7 @@ class PersonItem(BaseSettingsModel):
     username: str = SettingsField(
         "",
         title="AYON Username",
-        description="The user's AYON login name (e.g. .smith).",
+        enum_resolver=users_enum,
     )
     role: str = SettingsField("", title="Role")
     enabled: bool = SettingsField(True, title="Enabled")
@@ -81,6 +87,29 @@ class ProjectDashboardSettings(BaseSettingsModel):
             {
                 "title": "Notes",
                 "content": "Ongoing notes, decisions, and reminders for the team.",
+            },
+            {
+                "title": "Formatting Guide",
+                "content": (
+                    "## Headings\n"
+                    "Use `#`, `##`, or `###` to break a block into sections.\n\n"
+                    "### Text styling\n"
+                    "You can use **bold**, *italic*, `inline code`, and "
+                    "[links](https://ayon.ynput.io).\n\n"
+                    "> Blockquotes are handy for callouts and warnings.\n\n"
+                    "### Lists\n"
+                    "- Bullet points for loose notes\n"
+                    "- Another item\n\n"
+                    "1. Numbered steps\n"
+                    "2. Keep them in order\n\n"
+                    "### Tables\n"
+                    "| Shot | Status | Artist |\n"
+                    "| --- | --- | --- |\n"
+                    "| SH010 | Approved | J. Smith |\n"
+                    "| SH020 | In Progress | A. Jones |\n\n"
+                    "Delete or edit this block once you're familiar with the "
+                    "options above."
+                ),
             },
         ],
         title="Content Blocks",
