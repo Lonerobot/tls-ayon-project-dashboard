@@ -8,6 +8,8 @@ We are proud to use the [AYON](https://ynput.io) pipeline system here at THE LIN
 
 Part of our never-ending quest is to make our systems as artist-friendly as possible, whilst we try to create order from the chaos.
 
+![1793710720528](image/README/1793710720528.jpg)
+
 We felt that like many studios, we found key information was being stored in mutliple locations. AYON's modular approach means you can augment it with enhanced addon functionality that fits your studio. We felt we needed a place on every project that introduced what the project was about, important settings, key goals, and any useful information that an artist arriving on the project would want to know. 
 
 This is Vibe Coded using Copilot/Claude Sonnet, but also released with actual human love from THE LINE ❤️
