@@ -5,6 +5,8 @@ Status: **PLAN ONLY - no code has been changed.** For review before any refactor
 
 Sources studied (all read-only):
 
+Updated 2026-11-03 with Ynput's answers to the open questions (see sections 2, 3, 7 and 8).
+
 - `ynput/ayon-addon-full-template` @ `a65415f` (README, AGENTS.md, `manifest.ts`, `vite.config.ts`, `package.py`, `server/__init__.py`, the example pages/menus/columns, store and API wiring)
 - `ynput/ayon-frontend` @ `d2d4e6e`:
   - `addon/AGENTS.md`: the `@ynput/ayon-addon` 0.3.0 SDK: rules, slot list and slot contexts
@@ -40,9 +42,21 @@ Non-goals for the first pass: new slots (header item, studio page, table columns
 
 `@ynput/ayon-frontend-shared`: everything in the top-level `shared/` folder of `ayon-frontend` is reusable by addons (confirmed by Ynput). The host provides these packages through module federation, so the addon uses AYON's own instances.
 
-### Premium / licence note (Power Pack)
+### Packages are on npm (verified 2026-11-03)
 
-`ayon-power-pack` is premium and not available on all AYON tiers; the repo is private (404 for us). Checked in the template: it only appears as a leftover `.gitmodules` entry and as a **host-side** `PowerpackProvider` that AYON itself renders around addon modules. Nothing in the template's source imports it. **Plan: we take zero dependency on it** (no submodule, no power-pack imports). One thing to confirm with Ynput: that the slot SDK and `MarkdownEditor` are not tier-gated (see Open Questions).
+The template README says the SDK "isn't published yet" and links it from a local checkout; that is out of date. Verified against the npm registry:
+
+| Package | Latest |
+|---|---|
+| `@ynput/ayon-addon` | 0.3.0 |
+| `@ynput/ayon-addon-dev` | 0.2.1 |
+| `@ynput/ayon-frontend-shared` | 0.8.0 (its `./components` entry includes the Lexical `MarkdownEditor`) |
+
+So we install normally from npm: no `link-frontend`, no `copy-shared`, no local `ayon-frontend` checkout. Note the template's rule: the addon runs against the shared library version **the AYON server ships**, so we must confirm which shared version the target 1.17.x server ships and not depend on anything newer than that.
+
+### Premium / licence note (Power Pack) - resolved
+
+`ayon-power-pack` is premium and not available on all AYON tiers; the repo is private (404 for us). In the template it only appears as a leftover `.gitmodules` entry and as a **host-side** `PowerpackProvider` that AYON itself renders around addon modules; nothing in the template's source imports it. **Ynput confirmed the slot SDK and `MarkdownEditor` are fully open source and not tier-gated.** We take zero dependency on Power Pack (no submodule, no imports).
 
 ---
 
@@ -60,12 +74,14 @@ Our impact:
 2. Existing hand-written markdown with soft line breaks / `---` rules will be re-serialised differently on first save (cosmetic diff, possibly visible).
 3. Read-only rendering must stay `react-markdown` + `remark-gfm` (the editor does not render read-only content; the docs say so explicitly). Tables keep rendering fine in read mode.
 
+Ynput's answer: tables and horizontal rules are **not supported today, but could be added with "probably not too much effort"**. `ayon-frontend` is open source, so upstream support is a realistic option. A contribution would need, per the editor `AGENTS.md` "Adding new syntax": an export/import transformer (order matters), a node registered in `EDITOR_NODES`, the feed renderer and `TextWidget` updated, `markdownToPlainText`, and round-trip checks in `/dev/editor`. It would only reach us after it ships in a server release, so it can't gate our first release; the guard below is the interim answer either way.
+
 **This must be proven with a spike before any UI work (Phase 0, Spike A), with a decision gate:**
 
 | Spike A result | Decision |
 |---|---|
 | Round trip lossless for our blocks | Use the editor for every block |
-| Only tables/rules lost | Per-block guard: if a block contains a table/hr, edit it in a plain markdown source textarea (AYON `InputTextarea`) instead of the rich editor; rich editor for everything else. Optionally ask Ynput about table support |
+| Only tables/rules lost | Either (a) per-block guard: if a block contains a table/hr, edit it in a plain markdown source textarea (AYON `InputTextarea`) instead of the rich editor, or (b) contribute table and horizontal-rule support upstream to `ayon-frontend` (see below) and wait for it to ship in `shared` |
 | Broadly lossy | Fall back to "markdown source" editing inline (textarea + live preview) and revisit when the editor gains tables |
 
 ---
@@ -87,7 +103,7 @@ Our impact:
 | Current | Fate |
 |---|---|
 | `vite.config.ts` (custom federation, proxy, mock guard) | Replace with template-style `ayonAddon({ name: "dashboard" })`. The remote name must equal the key in `frontend_modules`. Output dir moves to the plugin's default |
-| `package.json` | Align deps/scripts with the template: SDK links, `@ynput/ayon-frontend-shared`, `@reduxjs/toolkit`, `react-redux`, `@ynput/ayon-react-components` (bump), keep `react-markdown` + `remark-gfm`; add `dev`, `dev:ayon`, `ayon-addon`, `link-frontend`, `copy-shared` scripts |
+| `package.json` | Align deps/scripts with the template, but install the SDK from npm instead of the template's `link:` entries: `@ynput/ayon-addon`, `@ynput/ayon-addon-dev` (dev), `@ynput/ayon-frontend-shared`, `@reduxjs/toolkit`, `react-redux`, `@ynput/ayon-react-components` (bump), keep `react-markdown` + `remark-gfm`; add `dev`, `dev:ayon`, `ayon-addon` scripts (no `link-frontend` / `copy-shared`) |
 | `src/integration/OverviewPanelRemote.tsx` | **Delete** -> replaced by `src/manifest.ts` |
 | NEW `src/manifest.ts` | `defineAddon({ contributes: [ projectPage({ id: "dashboard", title: "Dashboard", component: () => import("./pages/DashboardPage") }) ] })` |
 | `src/pages/DashboardPanel.tsx` | Becomes `pages/DashboardPage.tsx`: default export, typed `SlotProps<'project.page'>`, reads `projectName`/`user` from context |
@@ -126,7 +142,7 @@ Each phase ends in a testable state; nothing is released until Phase 5.
 ### Phase 0 - Environment and spikes (no repo changes except notes)
 
 - 0.1 Get a dev AYON server **>= 1.17.0** (local docker or a Ynput-provided instance). Confirm when `the-line.ayon.app` moves to 1.17.0 (hard prerequisite for deploying).
-- 0.2 Clone `ynput/ayon-frontend` at `d2d4e6e`; `yarn build:addon` and `yarn build:shared`; link into `frontend/` with `yarn link-frontend` + `yarn copy-shared` (the SDK packages are not on npm yet).
+- 0.2 Install the SDK from npm (`@ynput/ayon-addon@0.3.0`, `@ynput/ayon-addon-dev@0.2.1`, `@ynput/ayon-frontend-shared@0.8.0`) in a scratch copy of the template; confirm the 1.17.x server we test on ships a compatible `shared` version. For Spike A, also clone `ynput/ayon-frontend` (`d2d4e6e`) only if we need its `/dev/editor` playground and cannot reach it on the dev server.
 - 0.3 **Spike A - editor round trip** (decision gate in section 3): run our real content blocks (the Formatting Guide + 3 real project blocks) through the editor playground at `/dev/editor` (dev, or user level 700+) and diff the markdown out vs in.
 - 0.4 **Spike B - write path**: find the supported way to save project settings overrides server-side (check `ayon-backend`) vs the native settings API from the frontend; confirm permissions model (who may write project settings) and the override semantics for list fields.
 - 0.5 **Spike C - embed `MarkdownEditor`** in a throwaway page of the template: confirm it works with the host's shared packages, whether `@module-federation/enhanced` must be installed, and the bundle-size impact (current largest chunk `DashboardPanel` ~176 kB).
@@ -154,7 +170,7 @@ Each phase ends in a testable state; nothing is released until Phase 5.
 
 ### Phase 5 - Docs, packaging, release
 
-- README: requirement `AYON >= 1.17.0`, inline editing section, updated dev instructions (`yarn dev`, linking the SDK), refreshed screenshots; revisit "Known issues".
+- README: requirement `AYON >= 1.17.0`, inline editing section, updated dev instructions (`yarn dev`; SDK comes from npm), refreshed screenshots; keep the "Known issues" (tab per-project visibility and order are Ynput limitations for now).
 - Version `0.2.0`; build with `create_package.py`; test on a dev bundle including upgrade from 0.1.27 (settings carried forward by the migration safety net, existing banner/refs still served); release notes.
 
 ---
@@ -172,13 +188,13 @@ Each phase ends in a testable state; nothing is released until Phase 5.
 | # | Risk | Mitigation |
 |---|---|---|
 | 1 | Editor has no table/hr support; saving a table block through it could destroy content | Spike A + per-block fallback editor; never auto-save without an explicit Save |
-| 2 | SDK (`@ynput/ayon-addon` 0.3.0, dev tools) is unpublished and linked from a local `ayon-frontend` checkout: builds are not reproducible from npm alone; API may still change | Pin `ayon-frontend` commit/version; document the link/build steps in README; revisit when published |
+| 2 | SDK is young (`@ynput/ayon-addon` 0.3.0, dev tools 0.2.1): API may still change. (Earlier concern that it was unpublished is resolved: it is on npm.) | Pin exact versions in `package.json`; keep `shared` no newer than the server ships; re-run `ayon-addon check` on each upgrade |
 | 3 | `the-line.ayon.app` may not be on 1.17.0 yet | Confirm with Ynput before Phase 5; keep `main` releasable |
 | 4 | List-override semantics (inline edit overrides the whole list; studio defaults stop propagating) | Document; consider storing only edited projects, and tell users |
 | 5 | Bypassing AYON settings machinery if we write via raw SQL | Spike B; avoid SQL for the user-facing write path |
 | 6 | Bundle size growth from the editor | Spike C; confirm it comes from the host's shared copy |
-| 7 | Premium tiers: possible hidden dependency on Power Pack features | None found in code; confirm with Ynput |
-| 8 | Tab shows for projects where the addon is disabled at project level; tab order not controllable (existing Known Issues) | Ask Ynput if `projectPage` can support visibility predicates/order; otherwise unchanged |
+| 7 | ~~Premium tiers / Power Pack dependency~~ | Resolved: SDK and `MarkdownEditor` are open source and not tier-gated (Ynput) |
+| 8 | Tab shows for projects where the addon is disabled at project level; tab order not controllable (existing Known Issues) | Ynput: not supported now (both **No**), but they think it makes sense and it overlaps with the planned Workspace views feature. Unchanged limitation for 0.2.0; keep the Known Issues in the README; revisit when Workspace views land |
 
 ---
 
@@ -191,9 +207,9 @@ For you:
 3. Table behaviour: if Spike A shows the editor drops tables, is falling back to a markdown-source editor for those blocks acceptable?
 4. Should inline editing be allowed for project managers only, or also for any user with project settings permission (decided with Spike B)?
 
-For Ynput (Pete's contact):
+For Ynput (answers received 2026-11-03):
 
-1. Does the editor support (or plan to support) tables and horizontal rules?
-2. Preferred, supported way for an addon to write its own project settings from server or frontend?
-3. Can a `projectPage` be hidden per project (addon disabled at project level) and can tab order be set?
-4. Confirm the slot SDK and `MarkdownEditor` are available on all tiers (not Power Pack gated), and the expected publish timeline for `@ynput/ayon-addon`.
+1. Tables / horizontal rules in the editor: **not supported yet; could be added without much effort.** -> Spike A decides interim behaviour; consider an upstream contribution.
+2. Supported way for an addon to write its own project settings: **unknown; needs Martin (another Ynput dev).** -> **Still open; blocks the Phase 3 design (Spike B).** Ask Martin specifically: is there a supported server-side API for an addon to set its own project settings overrides (and does it emit settings events/versioning), or is the native `/api/addons/.../settings` endpoint the intended route from the frontend, and which permission does it check?
+3. Per-project tab hiding and tab order: **No and No** for now; may come with Workspace views. -> Accepted limitation.
+4. Tier availability: **fully open source.** SDK publish timeline: **already on npm.** -> Resolved.
