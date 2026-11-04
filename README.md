@@ -84,15 +84,29 @@ A server + frontend addon for [AYON](https://ynput.io) that adds a per-project "
 ### Visibility controls
 
 - Reference images can be toggled on/off independently.
+- The whole dashboard can be switched on/off with the **Enabled** setting. It behaves differently at the two levels, see [Enabling and disabling the dashboard](#enabling-and-disabling-the-dashboard).
 
 ## Requirements
 
 - AYON server `>=1.15.0` (needed for the Key Personnel username dropdown,
   which relies on the server's built-in `users` enum resolver).
 
+## Enabling and disabling the dashboard
+
+The **Enabled** setting works at two levels, and they are not equivalent:
+
+| Where | Effect |
+|---|---|
+| **Studio settings** → Project Dashboard → Enabled **off** | A global switch. The Dashboard tab is hidden on **every** project, including projects that have **Enabled** switched on in their project settings. AYON only asks the addon which tabs to show once for the whole studio, without a project, so a project-level override can't bring the tab back. |
+| **Project settings** → Project Dashboard → Enabled **off** | The tab is still shown, but its content is empty for that project. |
+
+So if you want the dashboard on only *some* projects, leave **Enabled** on at studio level and switch it off on the projects that shouldn't have it. Don't switch it off at studio level and on per project: the tab will disappear everywhere.
+
+This was added in 0.1.24, so upgrading from an earlier version when Enabled is off at studio level (and relied on per project) will make the tab vanish. Settings are carried forward when you upgrade, so the studio-level value comes with them.
+
 ## Known Issues
 
-- AYON doesn't seem to be able to not render the tab on a project where the addon is part of the bundle, but not enabled. So if the Dashboard is disabled, you'll still see an (empty) Dashboard tab)
+- AYON can't hide the tab for a single project where the addon is part of the bundle but not enabled, so if the Dashboard is disabled on a project you'll still see an (empty) Dashboard tab. See [Enabling and disabling the dashboard](#enabling-and-disabling-the-dashboard).
 - We can't control which order the tab is rendered
 
 ## Settings
