@@ -2,15 +2,16 @@
 
 # AYON Project Dashboard
 
+[![Latest release](https://img.shields.io/github/v/release/Lonerobot/tls-ayon-project-dashboard?label=release&sort=semver)](https://github.com/Lonerobot/tls-ayon-project-dashboard/releases/latest) [![Last commit](https://img.shields.io/github/last-commit/Lonerobot/tls-ayon-project-dashboard)](https://github.com/Lonerobot/tls-ayon-project-dashboard/commits/main) [![Open issues](https://img.shields.io/github/issues/Lonerobot/tls-ayon-project-dashboard)](https://github.com/Lonerobot/tls-ayon-project-dashboard/issues) [![AYON server](https://img.shields.io/badge/AYON%20server-%3E%3D1.15.0-5ea0ff)](https://ynput.io) [![Server addon: Python](https://img.shields.io/badge/server%20addon-Python-3776AB?logo=python&logoColor=white)](server) [![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev) [![TypeScript 5.9](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org) [![Vite 7](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vite.dev) [![Made by THE LINE](https://img.shields.io/badge/made%20by-THE%20LINE-black)](https://thelinestudio.com)
+
 We are proud to use the [AYON](https://ynput.io) pipeline system here at THE LINE.
 
-Part of our never-ending quest is to make our systems as artist-friendly as possible, whilst we try to create order from the chaos.
+Part of our never-ending quest is to make our systems as artist-friendly as possible, whilst we try to create order from the chaos. AYON's modular approach means you can augment it with enhanced addon functionality that fits your studio. This is an attempt to demonstrate this. This is Vibe Coded using Copilot/Claude Sonnet, but also released with actual human love from THE LINE ❤️
 
 ![1793710720528](image/README/1793710720528.jpg)
 
-We felt that like many studios, we found key information was being stored in mutliple locations. AYON's modular approach means you can augment it with enhanced addon functionality that fits your studio. We felt we needed a place on every project that introduced what the project was about, important settings, key goals, and any useful information that an artist arriving on the project would want to know.
+We felt that like many studios, we found key information was being stored in mutliple locations. We felt we needed a place on every project that introduced what the project was about, important settings, key goals, and any useful information that an artist arriving on the project would want to know.
 
-This is Vibe Coded using Copilot/Claude Sonnet, but also released with actual human love from THE LINE ❤️
 
 ## What is it?
 
