@@ -1,5 +1,3 @@
-
-
 ![1793704722186](image/README/1793704722186.png)
 
 # AYON Project Dashboard
@@ -10,7 +8,7 @@ Part of our never-ending quest is to make our systems as artist-friendly as poss
 
 ![1793710720528](image/README/1793710720528.jpg)
 
-We felt that like many studios, we found key information was being stored in mutliple locations. AYON's modular approach means you can augment it with enhanced addon functionality that fits your studio. We felt we needed a place on every project that introduced what the project was about, important settings, key goals, and any useful information that an artist arriving on the project would want to know. 
+We felt that like many studios, we found key information was being stored in mutliple locations. AYON's modular approach means you can augment it with enhanced addon functionality that fits your studio. We felt we needed a place on every project that introduced what the project was about, important settings, key goals, and any useful information that an artist arriving on the project would want to know.
 
 This is Vibe Coded using Copilot/Claude Sonnet, but also released with actual human love from THE LINE ❤️
 
@@ -95,14 +93,18 @@ A server + frontend addon for [AYON](https://ynput.io) that adds a per-project "
 
 The **Enabled** setting works at two levels, and they are not equivalent:
 
-| Where | Effect |
-|---|---|
-| **Studio settings** → Project Dashboard → Enabled **off** | A global switch. The Dashboard tab is hidden on **every** project, including projects that have **Enabled** switched on in their project settings. AYON only asks the addon which tabs to show once for the whole studio, without a project, so a project-level override can't bring the tab back. |
-| **Project settings** → Project Dashboard → Enabled **off** | The tab is still shown, but its content is empty for that project. |
+| Where                                                                    | Effect                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Studio settings** → Project Dashboard → Enabled **off**  | A global switch. The Dashboard tab is hidden on **every** project, including projects that have **Enabled** switched on in their project settings. AYON only asks the addon which tabs to show once for the whole studio, without a project, so a project-level override can't bring the tab back. |
+| **Project settings** → Project Dashboard → Enabled **off** | The tab is still shown, but its content is empty for that project.                                                                                                                                                                                                                                             |
 
 So if you want the dashboard on only *some* projects, leave **Enabled** on at studio level and switch it off on the projects that shouldn't have it. Don't switch it off at studio level and on per project: the tab will disappear everywhere.
 
 This was added in 0.1.24, so upgrading from an earlier version when Enabled is off at studio level (and relied on per project) will make the tab vanish. Settings are carried forward when you upgrade, so the studio-level value comes with them.
+
+Ideally I'd want the project level enabled setting to dictate the visibilty of the whole tab, rather than leaving an empty tab. But this is a current AYON limitation.
+
+![1793789334493](image/README/1793789334493.jpg)
 
 ## Known Issues
 
